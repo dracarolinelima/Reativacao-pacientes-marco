@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reativação — Março 2026</title>
+<style>
+  :root {
+    --roxo: #4A1C3C;
+    --dourado: #C9A961;
+    --verde: #2E7D32;
+    --cinza: #f4f4f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    background: var(--cinza);
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+  .header {
+    background: var(--roxo);
+    color: white;
+    padding: 24px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    margin: 0 0 6px 0;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .header p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  .script-box {
+    background: white;
+    border-left: 4px solid var(--dourado);
+    padding: 16px 18px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .script-box strong {
+    color: var(--roxo);
+  }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card.done {
+    opacity: 0.5;
+  }
+  .info {
+    flex: 1;
+    min-width: 200px;
+  }
+  .info .nome {
+    font-weight: 600;
+    font-size: 15px;
+    color: #222;
+  }
+  .info .tel {
+    font-size: 13px;
+    color: #777;
+    margin-top: 2px;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn-wpp {
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  select {
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+  }
+  .status-agendou { color: var(--verde); font-weight: 600; }
+  .status-nao-quer { color: #c0392b; font-weight: 600; }
+  .counter {
+    background: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+    font-weight: 600;
+    color: var(--roxo);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Reativação — Pacientes de Março 2026</h1>
+  <p>Consultas de rotina que já passaram de 3 meses sem retorno. Enviar mensagem, marcar status conforme resposta.</p>
+</div>
+
+<div class="script-box">
+  <strong>Script:</strong><br>
+  Oi [nome], tudo bem? Aqui é a Edi, do consultório da Dra. Caroline Lima.<br><br>
+  A Dra. pediu para saber se está tudo bem com você e para marcar uma nova consulta. Já passou do prazo que ela solicitou retornar para reavaliar sua saúde.<br><br>
+  Ainda temos alguns horários nos próximos dias. Podemos agendar?
+</div>
+
+<div class="counter" id="counter">0 de 12 contatadas</div>
+
+<div id="lista"></div>
+
+<script>
+const pacientes = [
+  { nome: "Sarah Helen Castro da Silveira", tel: "5521982294453" },
+  { nome: "Jessica Oliveira da Silva", tel: "5521980205788" },
+  { nome: "Claudia Rosa Sayas Medina", tel: "5521975675542" },
+  { nome: "Ana Paula dos Santos Barreto", tel: "5521979539699" },
+  { nome: "Ana Carla Rangel Falcon", tel: "5521992799367" },
+  { nome: "Caroline Lopes Marcos", tel: "5521993242224" },
+  { nome: "Natalia Inacio Nogueira", tel: "5521964229810" },
+  { nome: "Viviane Lirio de Oliveira", tel: "5521996728981" },
+  { nome: "Mariana Oliveira Lima de Santana", tel: "5521992052053" },
+  { nome: "Camila Leal Gonzalez", tel: "5521997538114" },
+  { nome: "Daniele dos Santos Matheus", tel: "5511992986435" },
+  { nome: "Meire Regina Matsunaga", tel: "5521983398088" }
+];
+
+const scriptMsg = encodeURIComponent(
+  "Oi! Aqui é a Edi, do consultório da Dra. Caroline Lima. A Dra. pediu para saber se está tudo bem com você e para marcar uma nova consulta. Já passou do prazo que ela solicitou retornar para reavaliar sua saúde. Ainda temos alguns horários nos próximos dias. Podemos agendar?"
+);
+
+function formatTel(tel) {
+  const ddd = tel.slice(2, 4);
+  const resto = tel.slice(4);
+  return `(${ddd}) ${resto.slice(0,5)}-${resto.slice(5)}`;
+}
+
+function updateCounter() {
+  const total = pacientes.length;
+  const done = document.querySelectorAll('select').length
+    ? Array.from(document.querySelectorAll('select')).filter(s => s.value !== 'pendente').length
+    : 0;
+  document.getElementById('counter').textContent = `${done} de ${total} contatadas`;
+}
+
+function render() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+  pacientes.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `card-${i}`;
+    card.innerHTML = `
+      <div class="info">
+        <div class="nome">${p.nome}</div>
+        <div class="tel">${formatTel(p.tel)}</div>
+      </div>
+      <div class="actions">
+        <a class="btn-wpp" target="_blank" href="https://wa.me/${p.tel}?text=${scriptMsg}">Abrir WhatsApp</a>
+        <select onchange="updateStatus(${i}, this.value)">
+          <option value="pendente">Pendente</option>
+          <option value="enviado">Mensagem enviada</option>
+          <option value="agendou">Agendou</option>
+          <option value="nao-respondeu">Não respondeu</option>
+          <option value="nao-quer">Não quer</option>
+        </select>
+      </div>
+    `;
+    lista.appendChild(card);
+  });
+  updateCounter();
+}
+
+function updateStatus(i, status) {
+  const card = document.getElementById(`card-${i}`);
+  if (status === 'pendente') {
+    card.classList.remove('done');
+  } else {
+    card.classList.add('done');
+  }
+  updateCounter();
+}
+
+render();
+</script>
+
+</body>
+</html>
